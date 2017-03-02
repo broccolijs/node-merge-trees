@@ -1,3 +1,5 @@
+'use strict'
+
 var fs = require('fs')
 var rimraf = require('rimraf');
 var symlinkOrCopySync = require('symlink-or-copy').sync
