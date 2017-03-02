@@ -1,8 +1,8 @@
-'use strict'
+'use strict';
 
-var fs = require('fs')
+var fs = require('fs');
 var rimraf = require('rimraf');
-var symlinkOrCopySync = require('symlink-or-copy').sync
+var symlinkOrCopySync = require('symlink-or-copy').sync;
 var loggerGen = require('heimdalljs-logger');
 var FSTree = require('fs-tree-diff');
 var Entry = require('./entry');
@@ -32,17 +32,17 @@ function unlinkOrRmrfSync(path) {
 
 class MergeTrees {
   constructor(inputPaths, outputPath, options) {
-    options = options || {}
-    var name = 'merge-trees:' + (options.annotation || '')
+    options = options || {};
+    var name = 'merge-trees:' + (options.annotation || '');
     if (!Array.isArray(inputPaths)) {
-      throw new TypeError(name + ': Expected array, got: [' + inputPaths +']')
+      throw new TypeError(name + ': Expected array, got: [' + inputPaths +']');
     }
 
     this._logger = loggerGen(name);
 
-    this.inputPaths = inputPaths
-    this.outputPath = outputPath
-    this.options = options
+    this.inputPaths = inputPaths;
+    this.outputPath = outputPath;
+    this.options = options;
     this._currentTree = FSTree.fromPaths([]);
   }
 
@@ -145,7 +145,7 @@ class MergeTrees {
         // directory change operations
         fs.unlinkSync(outputFilePath);
         fs.mkdirSync(outputFilePath);
-        return
+        return;
       }
     } else {
       // file changed
@@ -166,18 +166,18 @@ class MergeTrees {
     // Array of readdir arrays
     var names = inputPaths.map(function (inputPath, i) {
       if (possibleIndices == null || possibleIndices.indexOf(i) !== -1) {
-        return fs.readdirSync(inputPath + '/' + baseDir).sort()
+        return fs.readdirSync(inputPath + '/' + baseDir).sort();
       } else {
-        return []
+        return [];
       }
-    })
+    });
 
     // Guard against conflicting capitalizations
-    var lowerCaseNames = {}
+    var lowerCaseNames = {};
     for (i = 0; i < this.inputPaths.length; i++) {
       for (j = 0; j < names[i].length; j++) {
-        fileName = names[i][j]
-        var lowerCaseName = fileName.toLowerCase()
+        fileName = names[i][j];
+        var lowerCaseName = fileName.toLowerCase();
         // Note: We are using .toLowerCase to approximate the case
         // insensitivity behavior of HFS+ and NTFS. While .toLowerCase is at
         // least Unicode aware, there are probably better-suited functions.
@@ -185,10 +185,10 @@ class MergeTrees {
           lowerCaseNames[lowerCaseName] = {
             index: i,
             originalName: fileName
-          }
+          };
         } else {
-          var originalIndex = lowerCaseNames[lowerCaseName].index
-          var originalName = lowerCaseNames[lowerCaseName].originalName
+          var originalIndex = lowerCaseNames[lowerCaseName].index;
+          var originalName = lowerCaseNames[lowerCaseName].originalName;
           if (originalName !== fileName) {
             throw new Error('Merge error: conflicting capitalizations:\n'
                             + baseDir + originalName + ' in ' + this.inputPaths[originalIndex] + '\n'
@@ -196,7 +196,7 @@ class MergeTrees {
                             + 'Remove one of the files and re-add it with matching capitalization.\n'
                             + 'We are strict about this to avoid divergent behavior '
                             + 'between case-insensitive Mac/Windows and case-sensitive Linux.'
-                           )
+                           );
           }
         }
       }
@@ -207,14 +207,14 @@ class MergeTrees {
 
     // Accumulate fileInfo hashes of { isDirectory, indices }.
     // Also guard against conflicting file types and overwriting.
-    var fileInfo = {}
+    var fileInfo = {};
     var inputPath;
     var infoHash;
 
     for (i = 0; i < inputPaths.length; i++) {
       inputPath = inputPaths[i];
       for (j = 0; j < names[i].length; j++) {
-        fileName = names[i][j]
+        fileName = names[i][j];
 
         // TODO: walk backwards to skip stating files we will just drop anyways
         var entry = buildEntry(baseDir + fileName, inputPath);
@@ -228,10 +228,10 @@ class MergeTrees {
           };
         } else {
           fileInfo[fileName].entry = entry;
-          fileInfo[fileName].indices.push(i)
+          fileInfo[fileName].indices.push(i);
 
           // Guard against conflicting file types
-          var originallyDirectory = fileInfo[fileName].isDirectory
+          var originallyDirectory = fileInfo[fileName].isDirectory;
           if (originallyDirectory !== isDirectory) {
             throw new Error('Merge error: conflicting file types: ' + baseDir + fileName
                             + ' is a ' + (originallyDirectory ? 'directory' : 'file')
@@ -239,7 +239,7 @@ class MergeTrees {
                             + ' but a ' + (isDirectory ? 'directory' : 'file')
                             + ' in ' + this.inputPaths[i] + '\n'
                             + 'Remove or rename either of those.'
-                           )
+                           );
           }
 
           // Guard against overwriting when disabled
@@ -249,7 +249,7 @@ class MergeTrees {
                             + this.inputPaths[fileInfo[fileName].indices[0]] + ' and ' + this.inputPaths[i] + '\n'
                             + 'Pass option { overwrite: true } to mergeTrees in order '
                             + 'to have the latter file win.'
-                           )
+                           );
           }
         }
       }
@@ -258,8 +258,8 @@ class MergeTrees {
     // Done guarding against all error conditions. Actually merge now.
     for (i = 0; i < this.inputPaths.length; i++) {
       for (j = 0; j < names[i].length; j++) {
-        fileName = names[i][j]
-        infoHash = fileInfo[fileName]
+        fileName = names[i][j];
+        infoHash = fileInfo[fileName];
 
         if (infoHash.isDirectory) {
           if (infoHash.indices.length === 1 && canSymlink) {
@@ -333,4 +333,4 @@ function buildEntry(relativePath, basePath) {
   return new Entry(relativePath, basePath, stat.mode, stat.size, stat.mtime);
 }
 
-module.exports = MergeTrees
+module.exports = MergeTrees;

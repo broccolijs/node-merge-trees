@@ -1,4 +1,4 @@
-'use strict'
+'use strict';
 
 function Entry(relativePath, basePath, mode, size, mtime) {
   this.mode = mode;
