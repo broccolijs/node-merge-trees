@@ -1,5 +1,7 @@
 # master
 
+# 1.0.1
+
 * Fix Node 4 compatibility
 
 # 1.0.0
