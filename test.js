@@ -345,4 +345,4 @@ describe('MergeTrees', function() {
 })
 
 
-require('mocha-jshint')()
+require('mocha-eslint')('*.js')

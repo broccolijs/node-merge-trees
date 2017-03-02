@@ -161,7 +161,7 @@ class MergeTrees {
     var isBaseCase = (possibleIndices === undefined);
 
     // baseDir has a trailing path.sep if non-empty
-    var i, j, fileName, fullPath, subEntries;
+    var i, j, fileName, subEntries;
 
     // Array of readdir arrays
     var names = inputPaths.map(function (inputPath, i) {
@@ -259,7 +259,6 @@ class MergeTrees {
     for (i = 0; i < this.inputPaths.length; i++) {
       for (j = 0; j < names[i].length; j++) {
         fileName = names[i][j]
-        fullPath = this.inputPaths[i] + '/' + baseDir + fileName
         infoHash = fileInfo[fileName]
 
         if (infoHash.isDirectory) {
