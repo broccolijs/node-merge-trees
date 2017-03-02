@@ -1,6 +1,7 @@
 # node-merge-trees
 
 [![Build Status](https://travis-ci.org/broccolijs/node-merge-trees.svg?branch=master)](https://travis-ci.org/broccolijs/node-merge-trees)
+[![Build status](https://ci.appveyor.com/api/projects/status/6c47hp9omebk09tq/branch/master?svg=true)](https://ci.appveyor.com/project/joliss/node-merge-trees/branch/master)
 
 Symlink or copy multiple trees of files on top of each other, resulting in a single merged tree.
 
