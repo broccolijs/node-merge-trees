@@ -1,72 +1,38 @@
 'use strict';
 
-var MergeTrees = require('./');
-var chai = require('chai'), expect = chai.expect;
-var chaiFiles = require('chai-files'); chai.use(chaiFiles);
+import chai from 'chai';
+import chaiFiles from 'chai-files';
+import fixturify from 'fixturify';
+import fs from 'fs-extra';
+import MergeTrees from '../src/index';
+import MergeFixtures from './merge-fixtures';
 
-var fixturify = require('fixturify');
-var fs = require('fs-extra');
+const { expect } = chai;
+const { file } = chaiFiles;
 
-var file = chaiFiles.file;
+chai.use(chaiFiles);
 
-function mergeFix(inputFixtures, options) {
-  var mergeFixtures = new MergeFixtures(inputFixtures.length, options);
-  var outputFixture = mergeFixtures.merge(inputFixtures);
+function mergeFix(inputFixtures: any[], options?: any) {
+  const mergeFixtures = new MergeFixtures(inputFixtures.length, options);
+  const outputFixture = mergeFixtures.merge(inputFixtures);
   mergeFixtures.cleanup();
   return outputFixture;
 }
 
-class MergeFixtures {
-  constructor(numberOfFixtures, options) {
-    this.root =  __dirname + '/tmp';
-    fs.removeSync(this.root);
-    fs.mkdirSync(this.root);
-    this.outputPath = this.root + '/out';
-    fs.mkdirSync(this.outputPath);
-    this.inputPaths = [];
-    for (var i = 0; i < numberOfFixtures; i++) {
-      var inputPath = this.root + '/' + i;
-      fs.mkdirSync(inputPath);
-      this.inputPaths.push(inputPath);
-    }
-    this.numberOfFixtures = numberOfFixtures;
-    this.mergeTrees = new MergeTrees(this.inputPaths, this.outputPath, options);
-  }
-
-  merge(inputFixtures) {
-    if (inputFixtures.length !== this.numberOfFixtures) {
-      throw new Error('Expected ' + this.numberOfFixtures + ' fixtures, got ' + inputFixtures.length);
-    }
-    for (var i = 0; i < inputFixtures.length; i++) {
-      fs.removeSync(this.inputPaths[i]);
-      fs.mkdirSync(this.inputPaths[i]);
-      fixturify.writeSync(this.inputPaths[i], inputFixtures[i]);
-    }
-    this.mergeTrees.merge();
-    return fixturify.readSync(this.outputPath);
-  }
-
-  cleanup() {
-    fs.removeSync(this.root);
-  }
-}
-
 function mapBy(array, property) {
-  return array.map(function (item) {
-    return item[property];
-  });
+  return array.map((item) => item[property]);
 }
 
-describe('MergeTrees', function() {
-  describe('._mergeRelativePaths()', function() {
-    it('returns an array of file infos', function() {
-      var mergeTrees = new MergeTrees(
-        [__dirname + '/tests/fixtures/a'],
+describe('MergeTrees', () => {
+  describe('._mergeRelativePaths()', () => {
+    it('returns an array of file infos', () => {
+      const mergeTrees = new MergeTrees(
+        [__dirname + '/fixtures/a'],
         __dirname + '/tmp/output'
       );
 
-      var fileInfos = mergeTrees._mergeRelativePath('');
-      var entries = mapBy(fileInfos, 'entry');
+      const fileInfos = mergeTrees._mergeRelativePath('');
+      const entries = mapBy(fileInfos, 'entry');
 
       expect(mapBy(entries, 'relativePath')).to.deep.equal([
         'bar.js',
@@ -74,14 +40,14 @@ describe('MergeTrees', function() {
       ]);
     });
 
-    it('sorts its return value', function() {
-      var mergeTrees = new MergeTrees(
-        [__dirname + '/tests/fixtures/b/input0', __dirname + '/tests/fixtures/b/input1'],
+    it('sorts its return value', () => {
+      const mergeTrees = new MergeTrees(
+        [__dirname + '/fixtures/b/input0', __dirname + '/fixtures/b/input1'],
         __dirname + '/tmp/output'
       );
 
-      var fileInfos = mergeTrees._mergeRelativePath('');
-      var entries = mapBy(fileInfos, 'entry');
+      const fileInfos = mergeTrees._mergeRelativePath('');
+      const entries = mapBy(fileInfos, 'entry');
 
       expect(mapBy(entries, 'relativePath')).to.deep.equal([
         'foo',
@@ -91,14 +57,14 @@ describe('MergeTrees', function() {
     });
   });
 
-  describe('.merge()', function() {
-    var ROOT= __dirname + '/tmp/';
-    var ONE = __dirname + '/tmp/one';
-    var TWO = __dirname + '/tmp/two';
-    var OUTPUT = __dirname + '/tmp/output';
-    var mergeTrees;
+  describe('.merge()', () => {
+    const ROOT = `${__dirname}/tmp/`;
+    const ONE = `${__dirname}/tmp/one`;
+    const TWO = `${__dirname}/tmp/two`;
+    const OUTPUT = `${__dirname}/tmp/output`;
+    let mergeTrees;
 
-    beforeEach(function() {
+    beforeEach(() => {
       fs.removeSync(ROOT);
       fs.mkdirSync(ROOT);
       fs.mkdirSync(ONE);
@@ -111,18 +77,18 @@ describe('MergeTrees', function() {
       ], OUTPUT);
     });
 
-    afterEach(function() {
+    afterEach(() => {
       fs.removeSync(ROOT);
     });
 
-    it('handles symlink -> merge transitions', function() {
+    it('handles symlink -> merge transitions', () => {
       mergeTrees.merge();
-      fixturify.writeSync(ONE,{
+      fixturify.writeSync(ONE, {
         subdir: { file1: '' }
       });
       mergeTrees.merge();
       expect(file(OUTPUT + '/subdir/file1')).to.exist;
-      fixturify.writeSync(TWO,{
+      fixturify.writeSync(TWO, {
         subdir: { file2: '' }
       });
       mergeTrees.merge();
@@ -131,7 +97,7 @@ describe('MergeTrees', function() {
     });
   });
 
-  it('merges files', function() {
+  it('merges files', () => {
     expect(mergeFix([
       {
         foo: '1'
@@ -144,8 +110,7 @@ describe('MergeTrees', function() {
     });
   });
 
-
-  it('merges empty directories', function() {
+  it('merges empty directories', () => {
     expect(mergeFix([
       {
         foo: {},
@@ -161,8 +126,8 @@ describe('MergeTrees', function() {
     });
   });
 
-  it('refuses to overwrite files by default', function() {
-    expect(function() {
+  it('refuses to overwrite files by default', () => {
+    expect(() => {
       mergeFix([
         {
           foo: '1a',
@@ -175,7 +140,7 @@ describe('MergeTrees', function() {
     }).to.throw(/Merge error: file bar exists in .* and [^]* overwrite: true/);
   });
 
-  it('overwrites files with { overwrite: true }', function() {
+  it('overwrites files with { overwrite: true }', () => {
     expect(mergeFix([
       {
         foo: '1a',
@@ -195,7 +160,7 @@ describe('MergeTrees', function() {
     });
   });
 
-  it('adds non-conflicting non-empty directories to the output', function() {
+  it('adds non-conflicting non-empty directories to the output', () => {
     expect(mergeFix([
       {
         foo: {
@@ -210,7 +175,7 @@ describe('MergeTrees', function() {
     });
   });
 
-  it('adds nested non-conflicting non-empty directories to the output', function() {
+  it('adds nested non-conflicting non-empty directories to the output', () => {
     expect(mergeFix([
       {
         foo: {
@@ -237,8 +202,8 @@ describe('MergeTrees', function() {
     });
   });
 
-  it('removes non-conflicting non-empty directories', function() {
-    var mergeFixtures = new MergeFixtures(1);
+  it('removes non-conflicting non-empty directories', () => {
+    const mergeFixtures = new MergeFixtures(1);
     mergeFixtures.merge([
       {
         foo: {
@@ -253,20 +218,20 @@ describe('MergeTrees', function() {
     mergeFixtures.cleanup();
   });
 
-  it('removes nested non-conflicting non-empty directories', function() {
-    var source = {
+  it('removes nested non-conflicting non-empty directories', () => {
+    const source = {
       foo: {
         bar: {
           baz: '1a',
         },
       },
     };
-    var sibling = {
+    const sibling = {
       foo: {
         qux: '2a',
       }
     };
-    var mergeFixtures = new MergeFixtures(2);
+    const mergeFixtures = new MergeFixtures(2);
     mergeFixtures.merge([source, sibling]);
     expect(mergeFixtures.merge([{}, sibling])).to.deep.equal({
       foo: {
@@ -275,10 +240,10 @@ describe('MergeTrees', function() {
     });
   });
 
-  it('refuses to honor conflicting capitalizations, with overwrite: false and true', function() {
+  it('refuses to honor conflicting capitalizations, with overwrite: false and true', () => {
     function expectItToRefuseConflictingCapitalizations(type, options) {
-      var content = type === 'dir' ? {} : 'hello world';
-      expect(function() {
+      const content = type === 'dir' ? {} : 'hello world';
+      expect(() => {
         mergeFix([
           {
             FOO: content
@@ -295,7 +260,7 @@ describe('MergeTrees', function() {
     expectItToRefuseConflictingCapitalizations('dir', { overwrite: true });
   });
 
-  it('merges directories', function() {
+  it('merges directories', () => {
     expect(mergeFix([
       {
         subdir: {
@@ -317,9 +282,9 @@ describe('MergeTrees', function() {
     });
   });
 
-  it('rejects directories colliding with files, with overwrite: false and true', function() {
+  it('rejects directories colliding with files, with overwrite: false and true', () => {
     function expectItToRejectTypeCollisions(options) {
-      expect(function() {
+      expect(() => {
         mergeFix([
           {
             foo: {}
@@ -328,7 +293,7 @@ describe('MergeTrees', function() {
           }
         ], options);
       }).to.throw(/Merge error: conflicting file types: foo is a directory in .* but a file in .*/);
-      expect(function() {
+      expect(() => {
         mergeFix([
           {
             foo: 'hello'
@@ -343,6 +308,3 @@ describe('MergeTrees', function() {
     expectItToRejectTypeCollisions({ overwrite: true });
   });
 });
-
-
-require('mocha-eslint')('*.js');

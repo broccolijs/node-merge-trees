@@ -1,6 +1,11 @@
-'use strict';
+export default class Entry {
+  public size: number;
+  public mode: any;
+  public mtime: number;
+  public linkDir: boolean;
+  public basePath: string;
+  public relativePath: string;
 
-class Entry {
   constructor(relativePath, basePath, mode, size, mtime) {
     this.mode = mode;
 
@@ -12,9 +17,7 @@ class Entry {
     this.linkDir = false;
   }
 
-  isDirectory() {
+  public isDirectory(): boolean {
     return (this.mode & 61440) === 16384;
   }
 }
-
-module.exports = Entry;

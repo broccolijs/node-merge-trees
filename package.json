@@ -15,7 +15,7 @@
   ],
   "files": [
     "index.js",
-    "entry.js"
+    "dist/merge-trees.cjs.js"
   ],
   "dependencies": {
     "can-symlink": "^1.0.0",
@@ -26,15 +26,27 @@
     "symlink-or-copy": "^1.0.0"
   },
   "devDependencies": {
+    "@types/mocha": "^2.2.40",
+    "@types/node": "^7.0.10",
     "chai": "^3.4.0",
     "chai-files": "^1.4.0",
     "fixturify": "^0.3.1",
     "fs-extra": "^1.0.0",
     "mocha": "^2.3.3",
-    "mocha-eslint": "^3.0.1"
+    "rollup": "^0.41.6",
+    "rollup-plugin-commonjs": "^8.0.2",
+    "rollup-plugin-node-resolve": "^2.0.0",
+    "rollup-plugin-typescript": "^0.8.1",
+    "tslint": "^4.5.1",
+    "typescript": "^2.2.1"
   },
   "scripts": {
-    "test": "mocha",
-    "test:debug": "mocha debug"
+		"prepublish": "yarn run build && yarn run build:test",
+    "build": "rollup --no-strict -c node.config.js",
+    "build:test": "rollup --no-strict -c test.config.js",
+    "test": "yarn run tslint && cp -R ./tests/fixtures ./dist/tests/ && mocha dist/tests/merge-trees-tests.cjs",
+    "test:debug": "mocha debug dist/tests/merge-trees-tests.cjs",
+    "build_and_test": "yarn run build:test && yarn run test",
+    "tslint": "tslint --type-check -c tslint.json --project tsconfig.json"
   }
 }
