@@ -1,0 +1,34 @@
+{
+  "extends": "tslint:latest",
+  "rules": {
+    "object-literal-sort-keys": false,
+    "no-bitwise": false,
+    "match-default-export-name": false,
+    "no-default-export": false,
+    "no-internal-module": true,
+    "ordered-imports": {
+      "options": {
+        "import-sources-order": "never",
+        "named-imports-order": "never"
+      }
+    },
+    "variable-name": {
+      "options": [
+        "ban-keywords",
+        "allow-pascal-case"
+      ]
+    },
+    "trailing-comma": {
+      "options": {
+        "multiline": "never",
+        "singleline": "never"
+      }
+    },
+    "quotemark": {
+      "options": [
+        "single",
+        "avoid-escape"
+      ]
+    }
+  }
+}
