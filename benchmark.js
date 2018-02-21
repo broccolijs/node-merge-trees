@@ -52,7 +52,10 @@ let n = 100;
 
   console.time(`incremental merge, canSymlink=${canSymlink}`);
   fs.mkdirSync("tmp/out");
-  let mergeTrees = new MergeTrees(inputPaths, "tmp/out", { overwrite: true });
+  let mergeTrees = new MergeTrees(inputPaths, "tmp/out", {
+    overwrite: true,
+    _fsUpdaterOptions: { canSymlink: canSymlink }
+  });
   for (let i = 0; i < n; i++) {
     modifyInput(i);
     mergeTrees.merge();
