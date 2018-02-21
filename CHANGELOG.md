@@ -2,8 +2,8 @@
 
 # 2.0.0
 
-* Refactor to use node-fs-updater; this improves performance, reduces code
-  complexity, and fixes an obscure bug
+* Refactor to use node-fs-updater; this reduces code complexity and fixes an
+  obscure bug
 
 * Bump minimum Node version to 6.0.0 to accomodate node-fs-updater
 
