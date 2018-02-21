@@ -41,7 +41,10 @@ let n = 100;
   console.time(`initial merge, canSymlink=${canSymlink}`);
   for (let i = 0; i < n; i++) {
     fs.mkdirSync("tmp/out");
-    let mergeTrees = new MergeTrees(inputPaths, "tmp/out", { overwrite: true, _fsUpdaterOptions: { canSymlink: canSymlink } });
+    let mergeTrees = new MergeTrees(inputPaths, "tmp/out", {
+      overwrite: true,
+      _fsUpdaterOptions: { canSymlink: canSymlink }
+    });
     mergeTrees.merge();
     rimraf.sync("tmp/out");
   }
@@ -57,3 +60,5 @@ let n = 100;
   rimraf.sync("tmp/out");
   console.timeEnd(`incremental merge, canSymlink=${canSymlink}`);
 });
+
+rimraf.sync("tmp");

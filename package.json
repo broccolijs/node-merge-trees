@@ -31,6 +31,7 @@
   },
   "scripts": {
     "test": "mocha",
-    "test:debug": "mocha debug"
+    "test:debug": "mocha debug",
+    "benchmark": "node benchmark.js"
   }
 }
