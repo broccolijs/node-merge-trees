@@ -95,9 +95,9 @@ class MergeTrees {
             let originalPath = lowerCaseNames.get(lowerCaseName).inputPath;
             throw new Error(
               `Merge error: conflicting capitalizations:\n` +
-              `${baseDir}${originalName} in ${originalPath}\n` +
-              `${baseDir}${fileName} in ${inputPath}\n` +
-              `Remove one of the files and re-add it with matching capitalization.`
+                `${baseDir}${originalName} in ${originalPath}\n` +
+                `${baseDir}${fileName} in ${inputPath}\n` +
+                `Remove one of the files and re-add it with matching capitalization.`
             );
           }
         }
@@ -117,10 +117,7 @@ class MergeTrees {
       let directory = directoryWithInputPath.fsObject;
       let inputPath = directoryWithInputPath.inputPath;
 
-      for (let kv of directory.getIndexSync()) {
-        let fileName = kv[0];
-        let fsObject = kv[1];
-
+      for (let [fileName, fsObject] of directory.getIndexSync()) {
         let relativePath = baseDir + fileName;
 
         let fsObjectsWithInputPaths = fileInfo.get(fileName);
@@ -139,9 +136,9 @@ class MergeTrees {
             let path2 = inputPath;
             throw new Error(
               `Merge error: conflicting file types: ` +
-              `${relativePath} is a ${type1} in ${path1}` +
-              ` but a ${type2} in ${path2}\n` +
-              `Remove or rename either one of those.`
+                `${relativePath} is a ${type1} in ${path1}` +
+                ` but a ${type2} in ${path2}\n` +
+                `Remove or rename either one of those.`
             );
           }
 
@@ -150,9 +147,9 @@ class MergeTrees {
             let originalPath = fsObjectsWithInputPaths[0].inputPath;
             throw new Error(
               `Merge error: file ${relativePath} exists in ` +
-              `${originalPath} and ${inputPath}\n` +
-              `Pass option { overwrite: true } to mergeTrees in order ` +
-              `to have the latter file win.`
+                `${originalPath} and ${inputPath}\n` +
+                `Pass option { overwrite: true } to mergeTrees in order ` +
+                `to have the latter file win.`
             );
           }
         }
@@ -166,10 +163,7 @@ class MergeTrees {
 
     // Done guarding against all error conditions. Actually merge now.
     let output = new DirectoryIndex();
-    for (let kv of fileInfo) {
-      let fileName = kv[0];
-      let fsObjectsWithInputPaths = kv[1];
-
+    for (let [fileName, fsObjectsWithInputPaths] of fileInfo) {
       if (fsObjectsWithInputPaths[0].fsObject instanceof Directory) {
         let subdirectory = this._getMergedDirectory2(
           fsObjectsWithInputPaths,
