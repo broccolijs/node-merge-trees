@@ -524,13 +524,13 @@ fs-extra@^5.0.0:
 
 fs-updater@RuslanZavacky/node-fs-updater#optimizations:
   version "1.0.4"
-  resolved "https://codeload.github.com/RuslanZavacky/node-fs-updater/tar.gz/fa1a1684c12dff099a831179f767b9121d765129"
+  resolved "https://codeload.github.com/RuslanZavacky/node-fs-updater/tar.gz/698ca8c81d0b9e31c8a01f2caa2cf5f2180afad3"
   dependencies:
     can-symlink "^1.0.0"
     clean-up-path "^1.0.0"
     heimdalljs "^0.2.5"
     heimdalljs-logger "^0.1.9"
-    rimraf "^2.6.2"
+    rimraf "^3.0.2"
 
 fs.realpath@^1.0.0:
   version "1.0.0"
@@ -1029,7 +1029,7 @@ restore-cursor@^2.0.0:
     onetime "^2.0.0"
     signal-exit "^3.0.2"
 
-rimraf@^2.2.8, rimraf@^2.6.2:
+rimraf@^2.2.8:
   version "2.7.1"
   resolved "https://artifactory.cicd.dc/artifactory/api/npm/product-platform-ui-npm-prod-virtual/rimraf/-/rimraf-2.7.1.tgz#35797f13a7fdadc566142c29d4f07ccad483e3ec"
   integrity sha1-NXl/E6f9rcVmFCwp1PB8ytSD4+w=
