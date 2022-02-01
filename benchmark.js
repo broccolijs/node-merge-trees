@@ -14,16 +14,17 @@ fs.mkdirSync("tmp");
 
 makeInputDir("tmp/input1", 2, 2);
 makeInputDir("tmp/input2", 3, 3);
-makeInputDir("tmp/input3", 5, 3);
-let inputPaths = ["tmp/input1", "tmp/input2", "tmp/input3"];
+makeInputDir("tmp/input3", 5, 5);
+makeInputDir("tmp/input4", 7, 7);
+let inputPaths = ["tmp/input1", "tmp/input2", "tmp/input3", "tmp/input4"];
 
 function makeInputDir(p, modulo, depth) {
   fs.mkdirSync(p);
-  for (let i = 0; i < 100; i++) {
+  for (let i = 0; i < 24; i++) {
     if (i % modulo !== 0) continue;
     fs.writeFileSync(`${p}/file${i}`, `file ${i} contents`);
     if (depth > 1) {
-      makeInputDir(`${p}/dir${i}`, module, depth - 1);
+      makeInputDir(`${p}/dir${i}`, modulo, depth - 1);
     }
   }
 }
