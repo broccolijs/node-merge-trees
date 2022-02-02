@@ -179,32 +179,6 @@ describe("MergeTrees", function () {
     });
   });
 
-  it("refuses to honor conflicting capitalizations, with overwrite: false and true", function () {
-    function expectItToRefuseConflictingCapitalizations(type, options) {
-      var content = type === "dir" ? {} : "hello world";
-      expect(function () {
-        mergeFix(
-          [
-            {
-              FOO: content
-            },
-            {
-              Foo: content
-            }
-          ],
-          options
-        );
-      }).to.throw(
-        /Merge error: conflicting capitalizations:\nFOO in .*\nFoo in .*\nRemove/
-      );
-    }
-
-    expectItToRefuseConflictingCapitalizations("file", { overwrite: false });
-    expectItToRefuseConflictingCapitalizations("dir", { overwrite: false });
-    expectItToRefuseConflictingCapitalizations("file", { overwrite: true });
-    expectItToRefuseConflictingCapitalizations("dir", { overwrite: true });
-  });
-
   it("merges directories", function () {
     expect(
       mergeFix([

@@ -32,15 +32,8 @@ class MergeTrees {
     instrumentation.stop();
   }
 
-  _getMergedDirectory() {
-    let directoriesWithInputPaths = this.inputPaths.map(inputPath => ({
-      fsObject: makeFSObject(inputPath), // Directory object
-      inputPath: inputPath // remember for error reporting
-    }));
-    return this._getMergedDirectory2(directoriesWithInputPaths, "");
-  }
 
-  // Say we are recursing into the "foo" directory, which only exists in
+  // Say we are iterating into the "foo" directory, which only exists in
   // this.inputPaths[1] and this.inputPaths[2]. Then baseDir will be "foo/",
   // and directoriesWithInputPaths will be
   //
@@ -62,55 +55,62 @@ class MergeTrees {
   // Note that we must not use `fsObject.valueOf()` to report errors, because we
   // may have followed symlinks and thus the fsObject may not point into any of
   // the inputPaths.
-  _getMergedDirectory2(directoriesWithInputPaths, baseDir) {
-    // First, short-circuit on single input directory. This is particularly
-    // important for the recursive case: It means we only descend into
-    // subdirectories that exist in more than one input directory.
-    if (directoriesWithInputPaths.length === 1) {
-      return directoriesWithInputPaths[0].fsObject;
-    }
+  _getMergedDirectory() {
+    let initialDirectoriesWithInputPaths = this.inputPaths.map(inputPath => ({
+      fsObject: makeFSObject(inputPath), // Directory object
+      inputPath: inputPath // remember for error reporting
+    }));
 
-    let overwrite = this.options.overwrite;
+    let mergedOutput = new DirectoryIndex();
 
-    // Guard against conflicting capitalizations. We are strict about this to
-    // avoid divergent behavior between case-insensitive Mac/Windows and
-    // case-sensitive Linux.
-    let lowerCaseNames = new Map();
-    for (let directoryWithInputPath of directoriesWithInputPaths) {
-      let directory = directoryWithInputPath.fsObject;
-      let inputPath = directoryWithInputPath.inputPath;
-      for (let fileName of directory.getIndexSync().keys()) {
-        let lowerCaseName = fileName.toLowerCase();
-        // Note: We are using .toLowerCase to approximate the case
-        // insensitivity behavior of HFS+ and NTFS. While .toLowerCase is at
-        // least Unicode aware, there are probably better-suited functions.
-        if (!lowerCaseNames.has(lowerCaseName)) {
-          lowerCaseNames.set(lowerCaseName, {
-            inputPath: inputPath,
-            originalName: fileName
-          });
+    let jobs = [[initialDirectoriesWithInputPaths, "", null, mergedOutput]];
+
+    let job;
+
+    // eslint-disable-next-line no-cond-assign
+    while (job = jobs.pop()) {
+      const [directoriesWithInputPaths, basePath, parentFilename, parentOutput] = job;
+
+      if (directoriesWithInputPaths.length === 1) {
+        if (parentFilename) {
+          parentOutput.set(parentFilename, directoriesWithInputPaths[0].fsObject);
         } else {
-          let originalName = lowerCaseNames.get(lowerCaseName).originalName;
-          if (originalName !== fileName) {
-            let originalPath = lowerCaseNames.get(lowerCaseName).inputPath;
-            throw new Error(
-              `Merge error: conflicting capitalizations:\n` +
-                `${baseDir}${originalName} in ${originalPath}\n` +
-                `${baseDir}${fileName} in ${inputPath}\n` +
-                `Remove one of the files and re-add it with matching capitalization.`
-            );
-          }
+          mergedOutput = directoriesWithInputPaths[0].fsObject;
+        }
+        continue;
+      }
+
+      let overwrite = this.options.overwrite;
+
+      let fileInfo = this._buildUpFileInfo(directoriesWithInputPaths, basePath, overwrite);
+
+      let currentOutput = !parentFilename ? parentOutput : new DirectoryIndex();
+
+      for (let [fileName, fsObjectsWithInputPaths] of fileInfo) {
+        if (fsObjectsWithInputPaths[0].fsObject instanceof Directory) {
+          jobs.unshift([fsObjectsWithInputPaths, `${basePath}${fileName}/`, fileName, currentOutput]);
+        } else {
+          // If there are multiple files, last one wins to get overwriting
+          // behavior.
+          let fsObject = fsObjectsWithInputPaths[fsObjectsWithInputPaths.length - 1].fsObject;
+
+          currentOutput.set(fileName, fsObject);
         }
       }
-    }
-    // From here on out, no files and directories exist with conflicting
-    // capitalizations, which means we can use `===` without .toLowerCase
-    // normalization.
 
-    // fileInfo maps file names to fsObjectWithInputPaths lists. These lists
-    // contain, for each instance of the file in the input directories, the
-    // FSObject for that file and the inputPath (from this.inputPaths) that it
-    // came from.
+      if (parentFilename) {
+        parentOutput.set(parentFilename, currentOutput);
+      }
+    }
+
+    return mergedOutput;
+  }
+
+  // fileInfo maps file names to fsObjectWithInputPaths lists. These lists
+  // contain, for each instance of the file in the input directories, the
+  // FSObject for that file and the inputPath (from this.inputPaths) that it
+  // came from.
+  _buildUpFileInfo(directoriesWithInputPaths, baseDir, overwrite) {
     let fileInfo = new Map();
 
     for (let directoryWithInputPath of directoriesWithInputPaths) {
@@ -136,9 +136,9 @@ class MergeTrees {
             let path2 = inputPath;
             throw new Error(
               `Merge error: conflicting file types: ` +
-                `${relativePath} is a ${type1} in ${path1}` +
-                ` but a ${type2} in ${path2}\n` +
-                `Remove or rename either one of those.`
+              `${relativePath} is a ${type1} in ${path1}` +
+              ` but a ${type2} in ${path2}\n` +
+              `Remove or rename either one of those.`
             );
           }
 
@@ -147,9 +147,9 @@ class MergeTrees {
             let originalPath = fsObjectsWithInputPaths[0].inputPath;
             throw new Error(
               `Merge error: file ${relativePath} exists in ` +
-                `${originalPath} and ${inputPath}\n` +
-                `Pass option { overwrite: true } to mergeTrees in order ` +
-                `to have the latter file win.`
+              `${originalPath} and ${inputPath}\n` +
+              `Pass option { overwrite: true } to mergeTrees in order ` +
+              `to have the latter file win.`
             );
           }
         }
@@ -161,24 +161,7 @@ class MergeTrees {
       }
     }
 
-    // Done guarding against all error conditions. Actually merge now.
-    let output = new DirectoryIndex();
-    for (let [fileName, fsObjectsWithInputPaths] of fileInfo) {
-      if (fsObjectsWithInputPaths[0].fsObject instanceof Directory) {
-        let subdirectory = this._getMergedDirectory2(
-          fsObjectsWithInputPaths,
-          `${baseDir}${fileName}/`
-        );
-        output.set(fileName, subdirectory);
-      } else {
-        // If there are multiple files, last one wins to get overwriting
-        // behavior.
-        let fsObject =
-          fsObjectsWithInputPaths[fsObjectsWithInputPaths.length - 1].fsObject;
-        output.set(fileName, fsObject);
-      }
-    }
-    return output;
+    return fileInfo;
   }
 }
 
